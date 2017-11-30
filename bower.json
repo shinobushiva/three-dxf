@@ -3,16 +3,17 @@
   "main": "dist/three-dxf.js",
   "version": "0.2.1",
   "authors": [
-    "GDS Storefront Estimating (gdsestimating.com)"
+    "Shinobu Izumi"
   ],
-  "description": "A dxf viewer for the browser using three.js.",
+  "description": "A dxf viewer for the browser using three.js. Updated for viewing dxf-tiip",
   "keywords": [
     "dxf",
     "cad",
-    "viewer"
+    "viewer",
+    "tiip"
   ],
   "license": "MIT",
-  "homepage": "https://github.com/gdsestimating/three-dxf",
+  "homepage": "https://github.com/shinobushiva/three-dxf",
   "ignore": [
     "**/.*",
     "node_modules",
