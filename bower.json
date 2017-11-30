@@ -1,6 +1,6 @@
 {
   "name": "three-dxf",
-  "main": "dist/three-dxf.js",
+  "main": "three-dxf.js",
   "version": "0.2.2",
   "authors": [
     "Shinobu Izumi"
