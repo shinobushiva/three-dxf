@@ -70,29 +70,64 @@ THREE.BulgeGeometry.prototype = Object.create( THREE.Geometry.prototype );
 
 var ThreeDxf;
 (function(ThreeDxf) {
-    
+
     var Helpers;
     (function(Helpers) {
-        
+
         var RENDER_MODE_2D = 0;
-        
+
+				// Added to culculate bounding box
+				Helpers.getCompoundBoundingBox = function(object3D){
+					var box = null;
+					object3D.traverse(function (obj3D) {
+
+							var geometry = obj3D.geometry;
+							if (geometry === undefined) return;
+							if (geometry.vertices.length === 0) return;
+							geometry.computeBoundingBox();
+							var trans = new THREE.Vector3();
+							var p = obj3D.parent;
+							while(p){
+								trans.add(p.position);
+								p = p.parent;
+							}
+							if (box === null) {
+									obj3D.position.z = 0;
+									var b = geometry.boundingBox;
+									b = new THREE.Box3(b.min, b.max);
+									b.translate(trans);
+									box = b;
+							} else {
+									obj3D.position.z = 0;
+									var b = geometry.boundingBox;
+									b = new THREE.Box3(b.min, b.max);
+									b.translate(trans);
+									box.union(b);
+							}
+					});
+					return box;
+				},
+
         Helpers.findExtents = function(scene) {
-            var box = new THREE.Box3().setFromObject(scene);
+            // var box = new THREE.Box3().setFromObject(scene);
+
+						var box = Helpers.getCompoundBoundingBox(scene);
 
             return box;
         },
 
         /**
-         * 
-         * @param {number} aspectRatio - the aspect ratio of the view we are geting the initial camera position for 
+         *
+         * @param {number} aspectRatio - the aspect ratio of the view we are geting the initial camera position for
          * @param {Scene} scene - the three js scene object holding all entities of the dxf drawing
          */
         Helpers.getCameraParametersFromScene = function(aspectRatio, scene) {
+
             var upperRightCorner, lowerLeftCorner, center,
                 extentsAspectRatio, vpUpperRightCorner, vpLowerLeftCorner,
                 width, height, header, i, viewports, viewport,
                 dir;
-            
+
             var extents;
             if(scene) {
                 extents = Helpers.findExtents(scene);
@@ -113,7 +148,7 @@ var ThreeDxf;
                     y: -halfHeight
                 };
             };
-            
+
             // Now that we have the corners, figure the current viewport extents
             width = upperRightCorner.x - lowerLeftCorner.x;
             height = upperRightCorner.y - lowerLeftCorner.y;
@@ -129,7 +164,7 @@ var ThreeDxf;
             } else {
                 height = width / aspectRatio;
             }
-            
+
             return {
                 bottom: -height / 2,
                 left: -width / 2,
@@ -141,17 +176,16 @@ var ThreeDxf;
                 }
             }
         };
-        
+
     })(Helpers = ThreeDxf.Helpers || (ThreeDxf.Helpers = {}));
-    
-    
+
     /**
      * Viewer class for a dxf object.
      * @param {Object} data - the dxf object
      * @param {Object} parent - the parent element to which we attach the rendering canvas
      * @param {Number} width - width of the rendering canvas in pixels
      * @param {Number} height - height of the rendering canvas in pixels
-     * @param {Object} font - a font loaded with THREE.FontLoader 
+     * @param {Object} font - a font loaded with THREE.FontLoader
      * @constructor
      */
     ThreeDxf.Viewer = function(data, parent, width, height, font) {
@@ -160,6 +194,7 @@ var ThreeDxf;
         createLineTypeShaders(data);
 
         var scene = new THREE.Scene();
+				this.scene = scene;
 
         // Create scene from dxf object (data)
         var i, entity, obj;
@@ -183,21 +218,32 @@ var ThreeDxf;
                 obj = drawEntity(entity, data);
             }
 
-            if(obj) scene.add(obj);
+            if(obj) {
+							entity['object'] = obj;
+							scene.add(obj);
+						}
             obj = null;
-        }
 
+        }
 
         width = width || $parent.innerWidth();
         height = height || $parent.innerHeight();
         var aspectRatio = width / height;
-        
+
         var viewPort = Helpers.getCameraParametersFromScene(aspectRatio, scene);
-        
+				console.log(viewPort)
+
         var camera = new THREE.OrthographicCamera(viewPort.left, viewPort.right, viewPort.top, viewPort.bottom, 1, 19);
         camera.position.z = 10;
         camera.position.x = viewPort.center.x;
         camera.position.y = viewPort.center.y;
+				//
+				// camera.position.z = -5;
+        // camera.position.x = 0;
+        // camera.position.y = 0;
+
+				console.log(camera.position);
+				console.log(scene);
 
         var renderer = this.renderer = new THREE.WebGLRenderer();
         renderer.setSize(width, height);
@@ -210,7 +256,32 @@ var ThreeDxf;
         controls.target.x = camera.position.x;
         controls.target.y = camera.position.y;
         controls.target.z = 0;
-        controls.zoomSpeed = 3;
+        controls.zoomSpeed = 1;
+
+
+
+				this.focus = function(target){
+					var $parent = $(parent);
+					width = width || $parent.innerWidth();
+	        height = height || $parent.innerHeight();
+
+	        var aspectRatio = width / height;
+					var viewPort = Helpers.getCameraParametersFromScene(aspectRatio, target);
+					console.log(viewPort)
+					// camera.left = viewPort.left;
+					// camera.right = viewPort.right;
+					// camera.top = viewPort.top;
+					// camera.bottom = viewPort.bottom;
+
+	        camera.position.x = viewPort.center.x;
+	        camera.position.y = viewPort.center.y;
+					controls.target.x = camera.position.x;
+	        controls.target.y = camera.position.y;
+	        controls.target.z = 0;
+	        controls.zoomSpeed = 1;
+
+					this.render();
+				}
 
 
         this.render = function() {
@@ -220,23 +291,9 @@ var ThreeDxf;
         controls.addEventListener('change', this.render);
         this.render();
 
-        $parent.on('click', function(event) {
-            var $el = $(renderer.domElement);
-
-            var vector = new THREE.Vector3(
-                ( (event.pageX - $el.offset().left) / $el.innerWidth() ) * 2 - 1,
-                -( (event.pageY - $el.offset().top) / $el.innerHeight() ) * 2 + 1,
-                0.5);
-            vector.unproject(camera);
-
-            var dir = vector.sub(camera.position).normalize();
-
-            var distance = -camera.position.z / dir.z;
-
-            var pos = camera.position.clone().add(dir.multiplyScalar(distance));
-
-            console.log(pos.x, pos.y); // Position in cad that is clicked
-        });
+				this.project = function(x, y) {
+					return _project(x, y);
+				}
 
         this.resize = function(width, height) {
             var originalWidth = renderer.domElement.width;
@@ -244,7 +301,6 @@ var ThreeDxf;
 
             var hscale = width / originalWidth;
             var vscale = height / originalHeight;
-
 
             camera.top = (vscale * camera.top);
             camera.bottom = (vscale * camera.bottom);
@@ -257,6 +313,24 @@ var ThreeDxf;
             renderer.setClearColor(0xfffffff, 1);
             this.render();
         };
+
+				function _project(x, y) {
+					var $el = $(renderer.domElement);
+					var off = $el.offset();
+
+					var vector = new THREE.Vector3(
+							( (x - off.left) / $el.innerWidth() ) * 2 - 1,
+							-( (y - off.top) / $el.innerHeight() ) * 2 + 1,
+							camera.z);
+					vector.unproject(camera);
+
+					var dir = vector.sub(camera.position).normalize();
+
+					var distance = -camera.position.z / dir.z;
+
+					var pos = camera.position.clone().add(dir.multiplyScalar(distance));
+					return pos;
+				}
 
         function drawEntity(entity, data) {
             var mesh;
@@ -299,11 +373,12 @@ var ThreeDxf;
                 }
 
             }
-            if(entity.shape) geometry.vertices.push(geometry.vertices[0]);
+            if(entity.shape)
+							geometry.vertices.push(geometry.vertices[0]);
 
 
             // set material
-            if(entity.lineType) {
+            if(entity.lineType && data.tables) {
                 lineType = data.tables.lineType.lineTypes[entity.lineType];
             }
 
@@ -313,27 +388,10 @@ var ThreeDxf;
                 material = new THREE.LineBasicMaterial({ linewidth: 1, color: color });
             }
 
-            // if(lineType && lineType.pattern && lineType.pattern.length !== 0) {
-
-            //           geometry.computeLineDistances();
-
-            //           // Ugly hack to add diffuse to this. Maybe copy the uniforms object so we
-            //           // don't add diffuse to a material.
-            //           lineType.material.uniforms.diffuse = { type: 'c', value: new THREE.Color(color) };
-
-            // 	material = new THREE.ShaderMaterial({
-            // 		uniforms: lineType.material.uniforms,
-            // 		vertexShader: lineType.material.vertexShader,
-            // 		fragmentShader: lineType.material.fragmentShader
-            // 	});
-            // }else {
-            // 	material = new THREE.LineBasicMaterial({ linewidth: 1, color: color });
-            // }
-
             line = new THREE.Line(geometry, material);
             return line;
         }
-        
+
         function drawCircle(entity, data) {
             var geometry, material, circle;
 
@@ -380,7 +438,6 @@ var ThreeDxf;
             material = new THREE.MeshBasicMaterial({ color: getColor(entity, data) });
 
             return new THREE.Mesh(geometry, material);
-            
         }
 
         function drawText(entity, data) {
@@ -388,9 +445,8 @@ var ThreeDxf;
 
             if(!font)
                 return console.warn('Text is not supported without a Three.js font loaded with THREE.FontLoader! Load a font of your choice and pass this into the constructor. See the sample for this repository or Three.js examples at http://threejs.org/examples/?q=text#webgl_geometry_text for more details.');
-            
-            geometry = new THREE.TextGeometry(entity.text, { font: font, height: 0, size: entity.textHeight || 12 });
 
+            geometry = new THREE.TextGeometry(entity.text, { font: font, height: 0, size: entity.textHeight/2 || 12 });
             material = new THREE.MeshBasicMaterial({ color: getColor(entity, data) });
 
             text = new THREE.Mesh(geometry, material);
@@ -428,9 +484,9 @@ var ThreeDxf;
 
         function drawBlock(entity, data) {
             var block = data.blocks[entity.name];
-            
+
             var group = new THREE.Object3D()
-            
+
             if(entity.xScale) group.scale.x = entity.xScale;
             if(entity.yScale) group.scale.y = entity.yScale;
 
@@ -443,7 +499,8 @@ var ThreeDxf;
                 group.position.y = entity.position.y;
                 group.position.z = entity.position.z;
             }
-            
+						group.position.z = 0; //FIX:zがundefinedにならないように
+
             for(var i = 0; i < block.entities.length; i++) {
                 var childEntity = drawEntity(block.entities[i], data, group);
                 if(childEntity) group.add(childEntity);
@@ -457,7 +514,7 @@ var ThreeDxf;
             if(entity.color) color = entity.color;
             else if(data.tables && data.tables.layer && data.tables.layer.layers[entity.layer])
                 color = data.tables.layer.layers[entity.layer].color;
-                
+
             if(color == null || color === 0xffffff) {
                 color = 0x000000;
             }
@@ -552,7 +609,7 @@ var ThreeDxf;
             return dashedLineShader;
         }
 
-        function findExtents(scene) { 
+        function findExtents(scene) {
             for(var child of scene.children) {
                 var minX, maxX, minY, maxY;
                 if(child.position) {
@@ -567,9 +624,5 @@ var ThreeDxf;
         }
 
     }
-    
+
 })(ThreeDxf || (ThreeDxf = {}));
-        
-
-
-
