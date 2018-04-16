@@ -231,7 +231,7 @@ var ThreeDxf;
         var aspectRatio = width / height;
 
         var viewPort = Helpers.getCameraParametersFromScene(aspectRatio, scene);
-				console.log(viewPort)
+				// console.log(viewPort)
 
         var camera = new THREE.OrthographicCamera(viewPort.left, viewPort.right, viewPort.top, viewPort.bottom, 1, 19);
         camera.position.z = 10;
@@ -242,8 +242,8 @@ var ThreeDxf;
         // camera.position.x = 0;
         // camera.position.y = 0;
 
-				console.log(camera.position);
-				console.log(scene);
+				// console.log(camera.position);
+				// console.log(scene);
 
         var renderer = this.renderer = new THREE.WebGLRenderer();
         renderer.setSize(width, height);
@@ -267,7 +267,7 @@ var ThreeDxf;
 
 	        var aspectRatio = width / height;
 					var viewPort = Helpers.getCameraParametersFromScene(aspectRatio, target);
-					console.log(viewPort)
+					// console.log(viewPort)
 					// camera.left = viewPort.left;
 					// camera.right = viewPort.right;
 					// camera.top = viewPort.top;
