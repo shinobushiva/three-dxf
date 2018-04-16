@@ -22,7 +22,7 @@
   "license": "MIT",
   "devDependencies": {},
   "dependencies": {
-    "three.js":"^0.80.0"
+    "three.js": "^0.77.1"
   },
   "keywords": [
     "dxf",
