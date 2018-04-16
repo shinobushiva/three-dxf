@@ -1,27 +1,28 @@
 {
   "name": "three-dxf",
-  "version": "0.2.1",
-  "description": "A dxf viewer for the browser using three.js.",
+  "version": "0.2.2",
+  "description": "A dxf viewer for the browser using three.js extended to read dxf-tiip format.",
   "main": "index.js",
   "scripts": {
     "test": "mocha test"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/gdsestimating/three-dxf"
+    "url": "https://github.com/shinobushiva/three-dxf"
   },
   "bugs": {
-    "url": "https://github.com/gdsestimating/three-dxf/issues",
-    "email": "bzuillsmith@gmail.com"
+    "url": "https://github.com/shinobushiva/three-dxf/issues",
+    "email": "stagesp1@gmail.com"
   },
-  "homepage": "https://github.com/gdsestimating/three-dxf",
-  "author": "GDS Storefront Estimating (gdsestimating.com)",
+  "homepage": "https://github.com/shinobushiva/three-dxf",
+  "author": "Shinobu Izumi",
   "contributors": [
-    "Ben Zuill-Smith <bzuillsmith@gmail.com>"
+    "Shinobu Izumi <stagesp1@gmail.com>"
   ],
   "license": "MIT",
   "devDependencies": {},
   "dependencies": {
+    "three.js":"^0.80.0"
   },
   "keywords": [
     "dxf",
