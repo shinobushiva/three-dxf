@@ -626,3 +626,7 @@ var ThreeDxf;
     }
 
 })(ThreeDxf || (ThreeDxf = {}));
+
+if (module) {
+	module.exports = ThreeDxf;
+}
