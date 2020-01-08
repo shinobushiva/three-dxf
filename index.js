@@ -1,1 +1,1 @@
-module.exports = require('./three-dxf');
+module.exports = require('./dist/three-dxf');
