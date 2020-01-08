@@ -1,4 +1,4 @@
-//three-dxf v0.2.1
+//three-dxf v0.2.4
 
 /**
  * Returns the angle in radians of the vector (p1,p2). In other words, imagine
@@ -183,12 +183,10 @@ var ThreeDxf;
      * Viewer class for a dxf object.
      * @param {Object} data - the dxf object
      * @param {Object} parent - the parent element to which we attach the rendering canvas
-     * @param {Number} width - width of the rendering canvas in pixels
-     * @param {Number} height - height of the rendering canvas in pixels
-     * @param {Object} font - a font loaded with THREE.FontLoader
+     * @param {Object} opt - width of the rendering canvas in pixels
      * @constructor
      */
-    ThreeDxf.Viewer = function(data, parent, width, height, font) {
+    ThreeDxf.Viewer = function(data, parent, opt = { width: null, height: null, font: null, pan: true, rotate: true, zoom: true}) {
         var $parent = $(parent);
 
         createLineTypeShaders(data);
@@ -226,26 +224,15 @@ var ThreeDxf;
 
         }
 
-        width = width || $parent.innerWidth();
-        height = height || $parent.innerHeight();
+        var width = opt['width'] || $parent.innerWidth();
+        var height = opt['height'] || $parent.innerHeight();
+        var font = opt['font']
         var aspectRatio = width / height;
 
         var viewPort = Helpers.getCameraParametersFromScene(aspectRatio, scene);
-				// console.log(viewPort)
-
-        var camera = new THREE.OrthographicCamera(viewPort.left, viewPort.right, viewPort.top, viewPort.bottom, 1, 19);
-        camera.position.z = 10;
-        camera.position.x = viewPort.center.x;
-        camera.position.y = viewPort.center.y;
-				//
-				// camera.position.z = -5;
-        // camera.position.x = 0;
-        // camera.position.y = 0;
-
-				// console.log(camera.position);
-				// console.log(scene);
-
+        var camera = new THREE.OrthographicCamera(viewPort.left, viewPort.right, viewPort.top, viewPort.bottom, 1, 1000);
         var renderer = this.renderer = new THREE.WebGLRenderer();
+
         renderer.setSize(width, height);
         renderer.setClearColor(0xfffffff, 1);
 
@@ -253,36 +240,16 @@ var ThreeDxf;
         $parent.show();
 
         var controls = new THREE.OrbitControls(camera, parent);
+        camera.position.z = 10;
+        camera.position.x = viewPort.center.x;
+        camera.position.y = viewPort.center.y;
+        controls.enablePan = opt['pan'] == null ? true : opt['pan']
+        controls.enableZoom = opt['zoom'] == null ? true : opt['zoom']
+        controls.enableRotate = opt['rotate'] == null ? true : opt['rotate']
         controls.target.x = camera.position.x;
         controls.target.y = camera.position.y;
         controls.target.z = 0;
         controls.zoomSpeed = 1;
-
-
-
-				this.focus = function(target){
-					var $parent = $(parent);
-					width = width || $parent.innerWidth();
-	        height = height || $parent.innerHeight();
-
-	        var aspectRatio = width / height;
-					var viewPort = Helpers.getCameraParametersFromScene(aspectRatio, target);
-					// console.log(viewPort)
-					// camera.left = viewPort.left;
-					// camera.right = viewPort.right;
-					// camera.top = viewPort.top;
-					// camera.bottom = viewPort.bottom;
-
-	        camera.position.x = viewPort.center.x;
-	        camera.position.y = viewPort.center.y;
-					controls.target.x = camera.position.x;
-	        controls.target.y = camera.position.y;
-	        controls.target.z = 0;
-	        controls.zoomSpeed = 1;
-
-					this.render();
-				}
-
 
         this.render = function() {
             renderer.render(scene, camera);
@@ -290,47 +257,6 @@ var ThreeDxf;
 
         controls.addEventListener('change', this.render);
         this.render();
-
-				this.project = function(x, y) {
-					return _project(x, y);
-				}
-
-        this.resize = function(width, height) {
-            var originalWidth = renderer.domElement.width;
-            var originalHeight = renderer.domElement.height;
-
-            var hscale = width / originalWidth;
-            var vscale = height / originalHeight;
-
-            camera.top = (vscale * camera.top);
-            camera.bottom = (vscale * camera.bottom);
-            camera.left = (hscale * camera.left);
-            camera.right = (hscale * camera.right);
-
-    //        camera.updateProjectionMatrix();
-
-            renderer.setSize(width, height);
-            renderer.setClearColor(0xfffffff, 1);
-            this.render();
-        };
-
-				function _project(x, y) {
-					var $el = $(renderer.domElement);
-					var off = $el.offset();
-
-					var vector = new THREE.Vector3(
-							( (x - off.left) / $el.innerWidth() ) * 2 - 1,
-							-( (y - off.top) / $el.innerHeight() ) * 2 + 1,
-							camera.z);
-					vector.unproject(camera);
-
-					var dir = vector.sub(camera.position).normalize();
-
-					var distance = -camera.position.z / dir.z;
-
-					var pos = camera.position.clone().add(dir.multiplyScalar(distance));
-					return pos;
-				}
 
         function drawEntity(entity, data) {
             var mesh;

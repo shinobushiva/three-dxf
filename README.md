@@ -18,7 +18,7 @@ For now we recommend cloning the repo, and starting with our sample. See **Run S
 // See index.js in the sample for more details
 var parser = new window.DxfParser();
 var dxf = parser.parseSync(fileReader.result);
-cadCanvas = new ThreeDxf.Viewer(dxf, document.getElementById('cad-view'), 400, 400);
+ThreeDxf.Viewer(dxf, document.getElementById('cad-view'), {zoom: true, pan: true, rotate: false});
 ```
 
 #### Run Samples
@@ -52,4 +52,4 @@ Does not yet support:
 * other less common objects and entities.
 
 #### Contributors
-bzuillsmith@gmail.com
+masamiki.matsubara@amd-lab.com
