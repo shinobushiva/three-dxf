@@ -1,23 +1,23 @@
 {
   "name": "three-dxf",
-  "version": "0.2.2",
-  "description": "A dxf viewer for the browser using three.js extended to read dxf-tiip format.",
+  "version": "0.2.4",
+  "description": "A dxf viewer for the browser using three.js. Updated for AMDlab LLC",
   "main": "index.js",
   "scripts": {
     "test": "mocha test"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/shinobushiva/three-dxf"
+    "url": "https://github.com/AMDlab/three-dxf"
   },
   "bugs": {
-    "url": "https://github.com/shinobushiva/three-dxf/issues",
-    "email": "stagesp1@gmail.com"
+    "url": "https://github.com/AMDlab/three-dxf/issues",
+    "email": "masamiki.matsubara@amd-lab.com"
   },
-  "homepage": "https://github.com/shinobushiva/three-dxf",
-  "author": "Shinobu Izumi",
+  "homepage": "https://github.com/AMDlab/three-dxf/three-dxf",
+  "author": "Masamiki Matsubara",
   "contributors": [
-    "Shinobu Izumi <stagesp1@gmail.com>"
+    "Masamiki Matsubara <masamiki.matsubara@amd-lab.com>"
   ],
   "license": "MIT",
   "devDependencies": {},
