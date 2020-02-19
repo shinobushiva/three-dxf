@@ -1,7 +1,7 @@
 {
   "name": "three-dxf",
   "main": "three-dxf.js",
-  "version": "0.2.4",
+  "version": "0.3.0",
   "authors": [
     "GDS Storefront Estimating (gdsestimating.com)",
   ],
