@@ -295,7 +295,11 @@ var ThreeDxf;
     }
     function drawCircle(entity, data) {
       var geometry, material, circle
-      geometry = new THREE.CircleGeometry(entity.radius, 32, entity.startAngle, entity.angleLength)
+      if(!!entity.angleLength && entity.angleLength < 0) {
+        geometry = new THREE.CircleGeometry(entity.radius, 16, entity.startAngle, Math.PI * 2 + entity.angleLength)
+      } else {
+        geometry = new THREE.CircleGeometry(entity.radius, 16, entity.startAngle, entity.angleLength)
+      }
       geometry.vertices.shift()
       material = new THREE.LineBasicMaterial({
         color: getColor(entity, data)
@@ -384,6 +388,7 @@ var ThreeDxf;
         group.position.z = entity.position.z
       }
       group.position.z = 0 //FIX:zがundefinedにならないように
+      if (!block.entities) return group
       for (var i = 0; i < block.entities.length; i++) {
         var childEntity = drawEntity(block.entities[i], data, group)
         if (childEntity) group.add(childEntity)
