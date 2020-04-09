@@ -1,32 +1,64 @@
 {
-  "name": "three-dxf",
-  "version": "0.3.0",
-  "description": "A dxf viewer for the browser using three.js. Updated for AMDlab LLC",
-  "main": "index.js",
-  "scripts": {
-    "test": "mocha test"
-  },
-  "repository": {
+  "_args": [
+    [
+      "github:AMDlab/three-dxf",
+      "/Users/matsubaramasamiki/SourceCodes/projects/AMDlab/lixil_auto_designer/client"
+    ]
+  ],
+  "_from": "github:AMDlab/three-dxf",
+  "_id": "three-dxf@github:AMDlab/three-dxf#52204f6ba26219dc124513d172f8b757712591f4",
+  "_inBundle": false,
+  "_integrity": "",
+  "_location": "/three-dxf",
+  "_phantomChildren": {},
+  "_requested": {
     "type": "git",
-    "url": "https://github.com/AMDlab/three-dxf"
+    "raw": "github:AMDlab/three-dxf",
+    "rawSpec": "github:AMDlab/three-dxf",
+    "saveSpec": "github:AMDlab/three-dxf",
+    "fetchSpec": null,
+    "gitCommittish": null
+  },
+  "_requiredBy": [
+    "/"
+  ],
+  "_resolved": "github:AMDlab/three-dxf#52204f6ba26219dc124513d172f8b757712591f4",
+  "_spec": "github:AMDlab/three-dxf",
+  "_where": "/Users/matsubaramasamiki/SourceCodes/projects/AMDlab/lixil_auto_designer/client",
+  "author": {
+    "name": "Masamiki Matsubara"
   },
   "bugs": {
     "url": "https://github.com/AMDlab/three-dxf/issues",
     "email": "masamiki.matsubara@amd-lab.com"
   },
-  "homepage": "https://github.com/AMDlab/three-dxf/three-dxf",
-  "author": "Masamiki Matsubara",
   "contributors": [
-    "Masamiki Matsubara <masamiki.matsubara@amd-lab.com>"
+    {
+      "name": "Masamiki Matsubara",
+      "email": "masamiki.matsubara@amd-lab.com"
+    }
   ],
-  "license": "MIT",
-  "devDependencies": {},
   "dependencies": {
-    "three": "^0.91.0"
+    "three": "^0.91.0",
+    "mathjs": "^6.6.2"
   },
+  "description": "A dxf viewer for the browser using three.js. Updated for AMDlab LLC",
+  "devDependencies": {},
+  "homepage": "https://github.com/AMDlab/three-dxf/three-dxf",
   "keywords": [
     "dxf",
     "cad",
     "viewer"
-  ]
+  ],
+  "license": "MIT",
+  "main": "index.js",
+  "name": "three-dxf",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AMDlab/three-dxf.git"
+  },
+  "scripts": {
+    "test": "mocha test"
+  },
+  "version": "0.3.0"
 }

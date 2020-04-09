@@ -158,23 +158,32 @@ var ThreeDxf;
       }
   })(Helpers = ThreeDxf.Helpers || (ThreeDxf.Helpers = {}))
   /**
-   * Viewer class for a dxf object.
-   * @param {Object} data - the dxf object
-   * @param {Object} parent - the parent element to which we attach the rendering canvas
-   * @param {Object} opt - width of the rendering canvas in pixels
-   * @constructor
+   * DEFAULT OPTION for Viewer fucntion
    */
-  ThreeDxf.Viewer = function (data, parent, opt = {
+  var DEFAULT_OPT = {
     width: null,
     height: null,
     font: null,
     pan: true,
     rotate: true,
     zoom: true
-  }, cEvents = {}) {
+  }
+
+  /**
+   * Viewer class for a dxf object.
+   * @param {Object} data - the dxf object
+   * @param {Object} parent - the parent element to which we attach the rendering canvas
+   * @param {Object} opt - options for three.js
+   * @param {Object} cEvents - additional events for three.js viewer
+   * @constructor
+   */
+  ThreeDxf.Viewer = function (data, parent, opt = DEFAULT_OPT, cEvents = {}) {
     var $parent = $(parent)
-    var scene = this.scene = new THREE.Scene()
-    var objs = this.objs = []
+    var scene = new THREE.Scene()
+    var objs = []
+    var lineVecs = []
+    var intersectsPoints = []
+
     createLineTypeShaders(data)
     // Create scene from dxf object (data)
     var i, entity, obj
@@ -203,6 +212,7 @@ var ThreeDxf;
       }
       obj = null
     }
+
     var width = opt['width'] || $parent.innerWidth()
     var height = opt['height'] || $parent.innerHeight()
     var font = opt['font']
@@ -235,6 +245,44 @@ var ThreeDxf;
     }
     this.render()
     var raycaster = new THREE.Raycaster();
+
+    /*
+     * @param formula [Array<Array<Float> >] 係数行列A: num x num 行列
+     * @param results [Array<Float>] 右辺のベクトルb: num x 1 行列
+     * return array
+     */
+    function solveSimultaneousEquation(formula, results) {
+      return math.lusolve(math.matrix(formula),math.matrix(results))._data
+    }
+
+    function getCoefficienConst(point1, point2) {
+      result = solveSimultaneousEquation([[point1.x, 1],[point2.x, 1]],[point1.y, point2.y])
+      return [result[0][0], result[1][0]]
+    }
+
+    function createIntersectPoint(point1, point2) {
+      var ao, ko
+      var minxo = math.min(point1.x, point2.x)
+      var minyo = math.min(point1.y, point2.y)
+      var maxxo = math.max(point1.x, point2.x)
+      var maxyo = math.max(point1.y, point2.y)
+      [ao, ko] = getCoefficienConst(point1, point2)
+      for(c = 0; c < lineVecs; c++) {
+        var at, kt
+        var minxt = math.min(lineVecs[c].start.x, lineVecs[c].end.x)
+        var minyt = math.min(lineVecs[c].start.y, lineVecs[c].end.y)
+        var maxxt = math.max(lineVecs[c].start.x, lineVecs[c].end.x)
+        var maxyt = math.max(lineVecs[c].start.y, lineVecs[c].end.y)
+        [at, kt] = getCoefficienConst(lineVecs[c].start, lineVecs[c].end)
+
+        var intersectX, intersectY
+        var result = solveSimultaneousEquation([1, -1 * ao],[1, -1 * at], [ko, kt])
+        [intersectY, intersectX] = [result[0][0], result[1][0]]
+        if(math.max(minxo, minxt) <= intersectX && intersectX < math.min(maxxo, maxxt) && math.max(minyo, minyt) <= intersectY && intersectY <= math.min(maxyo, maxyt)) {
+          intersectsPoints.push(THREE.Vector3(intersectX, intersectY, 0))
+        }
+      }
+    }
 
     // draw functions
     function drawEntity(entity, data) {
@@ -274,6 +322,13 @@ var ThreeDxf;
       }
       if (entity.shape)
         geometry.vertices.push(geometry.vertices[0])
+      for(i = 1; i < geometry.vertices.length; i++) {
+        createIntersectPoint(geometry.vertices[i - 1], geometry.vertices[i])
+        lineVecs.push({
+          start: geometry.vertices[i - 1],
+          end: geometry.vertices[i],
+        })
+      }
       // set material
       if (entity.lineType && data.tables) {
         lineType = data.tables.lineType.lineTypes[entity.lineType]
@@ -474,6 +529,7 @@ var ThreeDxf;
       ].join('\n')
       return dashedLineShader
     }
+    console.log(intersectsPoints)
     return { canvas: parent, parent: $parent, raycaster: raycaster, scene: scene, renderer: renderer, camera: camera, controls: controls, objs: objs, three: THREE }
   }
 })(ThreeDxf || (ThreeDxf = {}))
