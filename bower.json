@@ -23,6 +23,7 @@
     "sample"
   ],
   "dependencies": {
-    "three.js": "0.80.0"
+    "three.js": "0.80.0",
+    "mathjs": "^6.6.2"
   }
 }
