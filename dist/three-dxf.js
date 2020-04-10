@@ -1,4 +1,5 @@
-//AMDlab/three-dxf v0.3.0
+// AMDlab/three-dxf v0.6.0
+var math = require('mathjs');
 /**
  * Returns the angle in radians of the vector (p1,p2). In other words, imagine
  * putting the base of the vector at coordinates (0,0) and finding the angle
@@ -182,7 +183,7 @@ var ThreeDxf;
     var scene = new THREE.Scene()
     var objs = []
     var lineVecs = []
-    var intersectsPoints = []
+    var intersects = []
 
     createLineTypeShaders(data)
     // Create scene from dxf object (data)
@@ -212,7 +213,6 @@ var ThreeDxf;
       }
       obj = null
     }
-
     var width = opt['width'] || $parent.innerWidth()
     var height = opt['height'] || $parent.innerHeight()
     var font = opt['font']
@@ -256,30 +256,84 @@ var ThreeDxf;
     }
 
     function getCoefficienConst(point1, point2) {
-      result = solveSimultaneousEquation([[point1.x, 1],[point2.x, 1]],[point1.y, point2.y])
+      if(point1.x == point2.x && point1.y == point2.y) {
+        return [null, null]
+      } else if (point1.x == point2.x) {
+        return[point1.x, null]
+      } else if (point1.y == point2.y) {
+        return[null, point1.y]
+      }
+
+      var result = solveSimultaneousEquation([[point1.x, 1],[point2.x, 1]],[point1.y, point2.y])
       return [result[0][0], result[1][0]]
     }
 
     function createIntersectPoint(point1, point2) {
-      var ao, ko
       var minxo = math.min(point1.x, point2.x)
       var minyo = math.min(point1.y, point2.y)
       var maxxo = math.max(point1.x, point2.x)
       var maxyo = math.max(point1.y, point2.y)
-      [ao, ko] = getCoefficienConst(point1, point2)
-      for(c = 0; c < lineVecs; c++) {
-        var at, kt
+
+      var originCoefficienConst = getCoefficienConst(point1, point2)
+      var ao = originCoefficienConst[0]
+      var ko = originCoefficienConst[1]
+      for(c = 0; c < lineVecs.length; c++) {
         var minxt = math.min(lineVecs[c].start.x, lineVecs[c].end.x)
         var minyt = math.min(lineVecs[c].start.y, lineVecs[c].end.y)
         var maxxt = math.max(lineVecs[c].start.x, lineVecs[c].end.x)
         var maxyt = math.max(lineVecs[c].start.y, lineVecs[c].end.y)
-        [at, kt] = getCoefficienConst(lineVecs[c].start, lineVecs[c].end)
-
+        var targetCoefficienConst = getCoefficienConst(lineVecs[c].start, lineVecs[c].end)
+        var at = targetCoefficienConst[0]
+        var kt = targetCoefficienConst[1]
         var intersectX, intersectY
-        var result = solveSimultaneousEquation([1, -1 * ao],[1, -1 * at], [ko, kt])
-        [intersectY, intersectX] = [result[0][0], result[1][0]]
-        if(math.max(minxo, minxt) <= intersectX && intersectX < math.min(maxxo, maxxt) && math.max(minyo, minyt) <= intersectY && intersectY <= math.min(maxyo, maxyt)) {
-          intersectsPoints.push(THREE.Vector3(intersectX, intersectY, 0))
+        if (at == null && kt == null) {
+          continue
+        } else if (ao == null && ko == null) {
+          continue
+        } else if (ko == null && kt == null) {
+          continue
+        } else if (ao == null && at == null) {
+          continue
+        } else if (ko == null && at == null) {
+          intersectX = ao
+          intersectY = kt
+        } else if (ao == null && kt == null) {
+          intersectX = at
+          intersectY = ko
+        } else if (ko == null) {
+          intersectX = ao
+          intersectY = at * ao + kt
+        } else if (ao == null) {
+          intersectY = ko
+          intersectX = (ko - kt) / at
+        } else if (kt == null) {
+          intersectX = at
+          intersectY = ao * at + ko
+        } else if (at == null) {
+          intersectY = kt
+          intersectX = (kt - ko) / ao
+        } else {
+          try {
+            var result = solveSimultaneousEquation([[1, -1 * ao], [1, -1 * at]], [ko, kt])
+            intersectX = result[1][0]
+            intersectY = result[0][0]
+          } catch(ex) {
+            console.log(ex);
+          }
+        }
+        if(math.max(minxo, minxt) <= intersectX && intersectX <= math.min(maxxo, maxxt) &&
+            math.max(minyo, minyt) <= intersectY && intersectY <= math.min(maxyo, maxyt) &&
+            !(intersectX == point1.x && intersectY == point1.y) && !(intersectX == point2.x && intersectY == point2.y)) {
+
+          var geometry, material, point
+          geometry = new THREE.Geometry()
+          geometry.vertices.push(new THREE.Vector3(intersectX, intersectY, 0))
+          material = new THREE.PointsMaterial({
+            size: 0.05,
+            vertexColors: THREE.VertexColors
+          })
+          point = new THREE.Points(geometry, material)
+          intersects.push(point)
         }
       }
     }
@@ -529,8 +583,8 @@ var ThreeDxf;
       ].join('\n')
       return dashedLineShader
     }
-    console.log(intersectsPoints)
-    return { canvas: parent, parent: $parent, raycaster: raycaster, scene: scene, renderer: renderer, camera: camera, controls: controls, objs: objs, three: THREE }
+
+    return { canvas: parent, parent: $parent, raycaster: raycaster, scene: scene, renderer: renderer, camera: camera, controls: controls, objs: objs, intersects: intersects, three: THREE }
   }
 })(ThreeDxf || (ThreeDxf = {}))
 
