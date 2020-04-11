@@ -51,7 +51,7 @@
     "viewer"
   ],
   "license": "MIT",
-  "main": "index.js",
+  "main": "dist/three-dxf.js",
   "name": "three-dxf",
   "repository": {
     "type": "git",
