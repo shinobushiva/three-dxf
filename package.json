@@ -39,7 +39,7 @@
     }
   ],
   "dependencies": {
-    "three": "^0.91.0",
+    "three": "^0.112.1",
     "mathjs": "^6.6.2"
   },
   "description": "A dxf viewer for the browser using three.js. Updated for AMDlab LLC",
@@ -60,5 +60,5 @@
   "scripts": {
     "test": "mocha test"
   },
-  "version": "0.6.0"
+  "version": "0.7.0"
 }
