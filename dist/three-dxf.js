@@ -61,7 +61,7 @@ THREEx.BulgeGeometry = function(startPoint, endPoint, bulge, segments) {
   center = THREEx.Math.polar(
     startPoint,
     radius,
-    THREE.Math.angle2(p0, p1) + (Math.PI / 2 - angle / 2)
+    THREEx.Math.angle2(p0, p1) + (Math.PI / 2 - angle / 2)
   )
   this.segments = segments =
     segments || Math.max(Math.abs(Math.ceil(angle / (Math.PI / 18))), 6) // By default want a segment roughly every 10 degrees
@@ -289,6 +289,9 @@ export function Viewer(data, parent, opt = DEFAULT_OPT, cEvents = {}) {
       var minyt = math.min(lineVecs[c].start.y, lineVecs[c].end.y)
       var maxxt = math.max(lineVecs[c].start.x, lineVecs[c].end.x)
       var maxyt = math.max(lineVecs[c].start.y, lineVecs[c].end.y)
+      if (maxxt < minxo || maxxo < minxt || maxyt < minyo || maxyo < minyt) {
+        continue
+      }
       var targetCoefficienConst = getCoefficienConst(
         lineVecs[c].start,
         lineVecs[c].end
@@ -461,7 +464,6 @@ export function Viewer(data, parent, opt = DEFAULT_OPT, cEvents = {}) {
       measure.setFromObject(text)
 
       var textWidth = measure.max.x - measure.min.x
-
       // If the text ends up being wider than the box, it's supposed
       // to be multiline. Doing that in threeJS is overkill.
       if (textWidth > entity.width) {
